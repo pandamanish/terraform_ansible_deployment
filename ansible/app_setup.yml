@@ -22,22 +22,22 @@
         state: started
         enabled: true
 
-    # Clone the MERN application repository
+    # Clone the MERN application repository to /home/ubuntu
     - name: Clone MERN application repository
       git:
         repo: 'https://github.com/UnpredictablePrashant/TravelMemory.git'
-        dest: /var/www/TravelMemory
+        dest: /home/ubuntu/TravelMemory
 
     # Install backend dependencies
     - name: Install backend dependencies
       command: npm install
       args:
-        chdir: /var/www/TravelMemory/backend
+        chdir: /home/ubuntu/TravelMemory/backend
 
     # Set environment variables for backend
     - name: Configure backend environment variables
       copy:
-        dest: /var/www/TravelMemory/backend/.env
+        dest: /home/ubuntu/TravelMemory/backend/.env
         content: |
           PORT=3001
           MONGO_URL=mongodb+srv://pandamanish:manish12@tm.xykv3.mongodb.net/TravelMemoryDB
@@ -45,7 +45,7 @@
     # Start backend server using PM2
     - name: Start backend server using PM2
       npm:
-        path: /var/www/TravelMemory/backend
+        path: /home/ubuntu/TravelMemory/backend
         state: present
       notify:
         - Start Backend Server
@@ -54,13 +54,17 @@
     - name: Install frontend dependencies
       command: npm install
       args:
-        chdir: /var/www/TravelMemory/frontend
+        chdir: /home/ubuntu/TravelMemory/frontend
 
     # Build the React frontend
     - name: Build React frontend
       command: npm run build
       args:
-        chdir: /var/www/TravelMemory/frontend
+        chdir: /home/ubuntu/TravelMemory/frontend
+
+    # Set permissions for the frontend build directory
+    - name: Set permissions for frontend build directory
+      command: chmod -R 755 /home/ubuntu/TravelMemory/frontend/build
 
     # Configure Nginx for React frontend and API
     - name: Configure Nginx for frontend and backend
@@ -73,8 +77,9 @@
 
               # Serve React frontend
               location / {
-                  root /var/www/TravelMemory/frontend/build;
+                  root /home/ubuntu/TravelMemory/frontend/build;
                   index index.html;
+                  try_files $uri /index.html;
               }
 
               # Proxy API requests to backend
@@ -96,5 +101,4 @@
 
   handlers:
     - name: Start Backend Server
-      command: pm2 start /var/www/TravelMemory/backend/server.js --name backend
-
+      command: pm2 start /home/ubuntu/TravelMemory/backend/server.js --name backend
