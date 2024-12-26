@@ -1,0 +1,100 @@
+- name: Full Application Setup (Web + Backend)
+  hosts: app
+  become: true
+  tasks:
+    # Install required packages
+    - name: Install Node.js, NPM, Git, MongoDB, and Nginx
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: true
+      loop:
+        - nodejs
+        - npm
+        - git
+        - mongodb
+        - nginx
+
+    # Start MongoDB service
+    - name: Start MongoDB service
+      service:
+        name: mongodb
+        state: started
+        enabled: true
+
+    # Clone the MERN application repository
+    - name: Clone MERN application repository
+      git:
+        repo: 'https://github.com/UnpredictablePrashant/TravelMemory.git'
+        dest: /var/www/TravelMemory
+
+    # Install backend dependencies
+    - name: Install backend dependencies
+      command: npm install
+      args:
+        chdir: /var/www/TravelMemory/backend
+
+    # Set environment variables for backend
+    - name: Configure backend environment variables
+      copy:
+        dest: /var/www/TravelMemory/backend/.env
+        content: |
+          PORT=3001
+          MONGO_URL=mongodb+srv://pandamanish:manish12@tm.xykv3.mongodb.net/TravelMemoryDB
+
+    # Start backend server using PM2
+    - name: Start backend server using PM2
+      npm:
+        path: /var/www/TravelMemory/backend
+        state: present
+      notify:
+        - Start Backend Server
+
+    # Install frontend dependencies
+    - name: Install frontend dependencies
+      command: npm install
+      args:
+        chdir: /var/www/TravelMemory/frontend
+
+    # Build the React frontend
+    - name: Build React frontend
+      command: npm run build
+      args:
+        chdir: /var/www/TravelMemory/frontend
+
+    # Configure Nginx for React frontend and API
+    - name: Configure Nginx for frontend and backend
+      copy:
+        dest: /etc/nginx/sites-available/default
+        content: |
+          server {
+              listen 80;
+              server_name _;
+
+              # Serve React frontend
+              location / {
+                  root /var/www/TravelMemory/frontend/build;
+                  index index.html;
+              }
+
+              # Proxy API requests to backend
+              location /api/ {
+                  proxy_pass http://localhost:3001;
+                  proxy_http_version 1.1;
+                  proxy_set_header Upgrade $http_upgrade;
+                  proxy_set_header Connection 'upgrade';
+                  proxy_set_header Host $host;
+                  proxy_cache_bypass $http_upgrade;
+              }
+          }
+
+    # Restart Nginx to apply the configuration
+    - name: Restart Nginx
+      service:
+        name: nginx
+        state: restarted
+
+  handlers:
+    - name: Start Backend Server
+      command: pm2 start /var/www/TravelMemory/backend/server.js --name backend
+
