@@ -9,38 +9,58 @@ Terraform installed on EC2 workspace.
 Ansible installed on EC2 workspace.
 An existing AWS key pair for SSH access to the EC2 instance.
 # Steps
-Configure AWS CLI and Set Up Terraform
-Install AWS CLI If AWS CLI is not already installed on your EC2 workspace, install it using the following commands:
+1. Configured AWS CLI and Set Up Terraform
+2. Installed AWS CLI If AWS CLI is not already installed on your EC2 workspace, installed it using the following commands:
+```
 sudo apt update -y
 sudo apt install aws-cli -y
-Configured AWS CLI Ran the following command to configure AWS CLI with your AWS credentials:
+```
+3. Configured AWS CLI Ran the following command to configure AWS CLI with your AWS credentials:
+```   
 aws configure
-it will ask for: AWS Access Key ID: Obtained this from AWS IAM account.(security creds) AWS Secret Access Key: Obtained this from AWS IAM account.(security creds) Default region: Entered your preferred region. Default output format: Entered json.
-Once the aws configure was done Created main.tf: Placed the provided Terraform configuration file in the terraform folder. /home/ubuntu/Travelmemory ├── terraform with the details specified for my ec2:
-AWS region Availability zone Public IP for security group. Key pair name AMI ID
-Once the main.tf file was prepared Alt text Initialized the Terraform using:
+```
+Note- it will ask for:
+AWS Access Key ID: Obtained this from AWS IAM account.(security creds) 
+AWS Secret Access Key: Obtained this from AWS IAM account.(security creds)
+Default region: Entered your preferred region.
+Default output format: Entered json.
 
+4. Once the aws configuration was done Created main.tf : 
+Placed the provided Terraform configuration file in the terraform folder.
+/home/ubuntu/Travelmemory/terraform with the details specified for my ec2:
+![Alt text](images/main.tf.png)
+which had all these details such as AWS region Availability zone Public IP for security group, Key pair name AMI ID
+
+5. Once the main.tf file was prepared 
+Initialized the Terraform using:
+```
 terraform init
+```
 Validated the configuration:
-
+```
 terraform validate
+```
 Plan and apply the configuration:
-
+```
 terraform plan
 terraform apply
-After Terraform applies, it will display: The public IP of the web server. The private IP of the backend server. Alt text
+```
+After Terraform applies, it displayed:
+![Alt text](images/tf.png)
+The public IP of the web server.
 
-Steps to Configure and Deploy Set Up Ansible
+5. Now Configured and Deployed using Ansible
 Installed Ansible on EC2 workspace:
-Created an inventory file inventory.ini in the /Travelmemory/ansible/ directory: Run Ansible Playbooks
-
+Created an inventory file inventory.ini and app_setup.yml which contains the configuration for the frontend conncted to my backend using the mongo- db and for proxy server used nginx in the /Travelmemory/ansible/ directory:
+Ran Ansible Playbooks
+![Alt text](images/ansible.png)
 Navigated to the /Travelmemroy/ansible/ directory:
-
+```
 cd ansible
+```
 Configured the backend server:
-
-ansible-playbook -i inventory.ini backend_setup.yml
-Configure the web server:
-
-ansible-playbook -i inventory.ini web_setup.yml
-Alt text
+```
+ansible-playbook -i inventory.ini app_setup.yml
+```
+![Alt text](images/tm.png)
+![Alt text](images/Mong.png)
